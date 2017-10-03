@@ -6,20 +6,16 @@ using System.Threading.Tasks;
 
 namespace DataStruc4ExerciseByYuvalAharoni
 {
-    public enum NodeStatus
-    {
-        LeftControl,
-        Equaled,
-        RightControl
-    }
     public class AVLTreeCell
     {
         public int Key { get; set; }
-        public NodeStatus Status { get; set; }
+        public int Height { get; set; }
         public int BalanceFactor { get; set; }
         public AVLTreeCell Parent { get; set; }
         public AVLTreeCell LeftChild { get; set; }
+        public int LeftMaxHeight { get; set; }
         public AVLTreeCell RightChild { get; set; }
+        public int RightMaxHeight { get; set; }
 
     }
 
@@ -81,6 +77,11 @@ namespace DataStruc4ExerciseByYuvalAharoni
     {
         AVLTreeCell Root;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Key"></param>
+        /// <returns></returns>
         public AVLTreeCell getCellByKey(int Key)
         {
             if (Root == null)
@@ -91,6 +92,12 @@ namespace DataStruc4ExerciseByYuvalAharoni
             return getCellByKey(Key, Root);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Key"></param>
+        /// <param name="Node"></param>
+        /// <returns></returns>
         private AVLTreeCell getCellByKey(int Key, AVLTreeCell Node)
         {
             if (Key == Node.Key)
@@ -111,6 +118,11 @@ namespace DataStruc4ExerciseByYuvalAharoni
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Key"></param>
+        /// <returns></returns>
         public bool insertCell(int Key)
         {
             if (Root == null)
@@ -121,13 +133,22 @@ namespace DataStruc4ExerciseByYuvalAharoni
                 return true;
             }
 
-            Root.BalanceFactor += insertCell(Key, Root);
+            int nBalance = insertCell(Key, Root);
 
-
+            if (Math.Abs(nBalance) > 1)
+            {
+                doRotationToRoot();
+            }
 
             return getCellByKey(Key) != null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Key"></param>
+        /// <param name="Node"></param>
+        /// <returns></returns>
         private int insertCell(int Key, AVLTreeCell Node)
         {
             if (Key <= Node.Key)
@@ -138,14 +159,40 @@ namespace DataStruc4ExerciseByYuvalAharoni
                     Node.LeftChild.Key = Key;
                     Node.LeftChild.Parent = Node;
                     Node.LeftChild.BalanceFactor = 0;
-                    Node.BalanceFactor = 1;
+
+                    Node.BalanceFactor += 1;
+
+                    Node.LeftMaxHeight = 1;
+
+                    if (Node.RightChild == null)
+                    {
+                        return 1;
+                    }
+                    
+                    return 0;
+                    
                 }
-                else
+
+                int nBalance = insertCell(Key, Node.LeftChild);
+
+                if (Math.Abs(nBalance) > 1)
                 {
-                    int nBalace = insertCell(Key, Node.LeftChild);
-                    Node.BalanceFactor += nBalace;
+                    doRotation(Node);
+
                 }
-                return 1;
+                else if (nBalance != 0)
+                {
+                    Node.LeftMaxHeight += 1;
+                }
+
+                Node.BalanceFactor = Node.LeftMaxHeight - Node.RightMaxHeight;
+
+                if (Math.Abs(Node.BalanceFactor) > 1)
+                {
+                    return Node.BalanceFactor;
+                }
+
+                return nBalance;
             }
             else
             {
@@ -155,17 +202,205 @@ namespace DataStruc4ExerciseByYuvalAharoni
                     Node.RightChild.Key = Key;
                     Node.RightChild.Parent = Node;
                     Node.RightChild.BalanceFactor = 0;
-                    Node.BalanceFactor = -1;
+
+                    Node.BalanceFactor += -1;
+
+                    Node.RightMaxHeight = 1;
+
+                    if (Node.LeftChild == null)
+                    {
+                        return -1;
+                    }
+
+                    return 0;
+
                 }
-                else
+
+                int nBalance = insertCell(Key, Node.RightChild);
+
+                if (Math.Abs(nBalance) > 1)
                 {
-                    int nBalace = insertCell(Key, Node.RightChild);
-                    Node.BalanceFactor += nBalace;
+                    doRotation(Node);
+
                 }
-                return -1;
+                else if (nBalance != 0)
+                {
+                    Node.RightMaxHeight += 1;
+                }
+
+                Node.BalanceFactor = Node.LeftMaxHeight - Node.RightMaxHeight;
+
+                if (Math.Abs(Node.BalanceFactor) > 1)
+                {
+                    return Node.BalanceFactor;
+                }
+
+                return nBalance;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Node"></param>
+        private void doRotation(AVLTreeCell Node)
+        {
+            if (Math.Abs(Node.LeftChild.BalanceFactor) > 1)
+            {
+                if (Node.LeftChild.BalanceFactor > 0)
+                {
+
+                    if (Node.LeftChild.LeftChild.BalanceFactor < 0)
+                    {
+                        AVLTreeCell atcTempNode = Node.LeftChild.LeftChild.RightChild;
+
+                        Node.LeftChild.LeftChild.RightChild = Node.LeftChild.LeftChild.RightChild.LeftChild;
+
+                        atcTempNode.LeftChild = Node.LeftChild.LeftChild;
+
+                        Node.LeftChild.LeftChild = atcTempNode;
+                    }
+
+                    AVLTreeCell atcFather = Node.LeftChild.LeftChild;
+
+                    Node.LeftChild.LeftChild = atcFather.RightChild;
+
+                    atcFather.RightChild = Node.LeftChild;
+
+                    Node.LeftChild = atcFather;
+                }
+                else
+                {
+
+                    if (Node.LeftChild.RightChild.BalanceFactor > 0)
+                    {
+                        AVLTreeCell atcTempNode = Node.LeftChild.RightChild.LeftChild;
+
+                        Node.LeftChild.RightChild.LeftChild = Node.LeftChild.RightChild.LeftChild.RightChild;
+
+                        atcTempNode.RightChild = Node.LeftChild.RightChild;
+
+                        Node.LeftChild.RightChild = atcTempNode;
+                    }
+
+                    AVLTreeCell atcFather = Node.LeftChild.RightChild;
+
+                    Node.LeftChild.RightChild = atcFather.LeftChild;
+
+                    atcFather.LeftChild = Node.LeftChild;
+
+                    Node.LeftChild = atcFather;
+                }
+
+            }
+            else
+            {
+
+                if (Node.RightChild.BalanceFactor > 0)
+                {
+
+                    if (Node.RightChild.LeftChild.BalanceFactor < 0)
+                    {
+                        AVLTreeCell atcTempNode = Node.RightChild.LeftChild.RightChild;
+
+                        Node.RightChild.LeftChild.RightChild = Node.RightChild.LeftChild.RightChild.LeftChild;
+
+                        atcTempNode.LeftChild = Node.RightChild.LeftChild;
+
+                        Node.RightChild.LeftChild = atcTempNode;
+                    }
+
+                    AVLTreeCell atcFather = Node.RightChild.LeftChild;
+
+                    Node.RightChild.LeftChild = atcFather.RightChild;
+
+                    atcFather.RightChild = Node.RightChild;
+
+                    Node.RightChild = atcFather;
+                }
+                else
+                {
+
+                    if (Node.RightChild.RightChild.BalanceFactor > 0)
+                    {
+                        AVLTreeCell atcTempNode = Node.RightChild.RightChild.LeftChild;
+
+                        Node.RightChild.RightChild.LeftChild = Node.RightChild.RightChild.LeftChild.RightChild;
+
+                        atcTempNode.RightChild = Node.RightChild.RightChild;
+
+                        Node.RightChild.RightChild = atcTempNode;
+                    }
+
+                    AVLTreeCell atcFather = Node.RightChild.RightChild;
+
+                    Node.RightChild.RightChild = atcFather.LeftChild;
+
+                    atcFather.LeftChild = Node.RightChild;
+
+                    Node.RightChild = atcFather;
+                }
+
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void doRotationToRoot()
+        {
+            if (Root.BalanceFactor > 0)
+            {
+
+                if (Root.LeftChild.BalanceFactor < 0)
+                {
+                    AVLTreeCell atcTempNode = Root.LeftChild.RightChild;
+
+                    Root.LeftChild.RightChild = Root.LeftChild.RightChild.LeftChild;
+
+                    atcTempNode.LeftChild = Root.LeftChild;
+
+                    Root.LeftChild = atcTempNode;
+                }
+
+                AVLTreeCell atcFather = Root.LeftChild;
+
+                Root.LeftChild = atcFather.RightChild;
+
+                atcFather.RightChild = Root;
+
+                Root = atcFather;
+            }
+            else
+            {
+
+                if (Root.RightChild.BalanceFactor > 0)
+                {
+                    AVLTreeCell atcTempNode = Root.RightChild.LeftChild;
+
+                    Root.RightChild.LeftChild = Root.RightChild.LeftChild.RightChild;
+
+                    atcTempNode.RightChild = Root.RightChild;
+
+                    Root.RightChild = atcTempNode;
+                }
+
+                AVLTreeCell atcFather = Root.RightChild;
+
+                Root.RightChild = atcFather.LeftChild;
+
+                atcFather.LeftChild = Root;
+
+                Root = atcFather;
+            }
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="keyToDelete"></param>
+        /// <returns></returns>
         public bool deleteCell(int keyToDelete)
         {
             return getCellByKey(keyToDelete) == null;
