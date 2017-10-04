@@ -342,6 +342,7 @@ namespace DataStruc4ExerciseByYuvalAharoni
                 }
 
             }
+            fixBalanceFactor(Root);
         }
 
         /// <summary>
@@ -394,6 +395,36 @@ namespace DataStruc4ExerciseByYuvalAharoni
                 Root = atcFather;
             }
 
+            fixBalanceFactor(Root);
+        }
+
+        public int fixBalanceFactor(AVLTreeCell Node)
+        {
+            if (Node.LeftChild == null)
+            {
+                Node.LeftMaxHeight = 0;
+            }
+            else
+            {
+                int nBalance = fixBalanceFactor(Node.LeftChild);
+
+                Node.LeftMaxHeight = nBalance;
+            }
+
+            if (Node.RightChild == null)
+            {
+                Node.RightMaxHeight = 0;
+            }
+            else
+            {
+                int nBalance = fixBalanceFactor(Node.RightChild);
+
+                Node.RightMaxHeight = nBalance;
+            }
+
+            Node.BalanceFactor = Node.LeftMaxHeight - Node.RightMaxHeight;
+
+            return Math.Max(Node.LeftMaxHeight, Node.RightMaxHeight) + 1;
         }
 
         /// <summary>
