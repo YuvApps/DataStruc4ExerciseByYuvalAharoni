@@ -44,53 +44,99 @@ namespace DataStruc4ExerciseByYuvalAharoni
     {
         public LinkedList queue;
 
+        public Queue()
+        {
+            queue = new LinkedList();
+        }
 
+        public bool isEmpty()
+        {
+            return queue.getHead() == null;
+        }
+
+        public void Enqueue(AVLTreeCell Node)
+        {
+            queue.addCell(Node);
+        }
+
+        public LinkedListCell Dequeue()
+        {
+            return queue.removeCell();
+        }
     }
 
     public class LinkedListCell
     {
-        public int Key { get; set; }
+        public AVLTreeCell Node { get; set; }
         public LinkedListCell Next { get; set; }
 
-        public LinkedListCell(int Key)
+        public LinkedListCell(AVLTreeCell Node)
         {
-            this.Key = Key;
+            this.Node = Node;
         }
     }
 
     public class LinkedList
     {
-        public LinkedListCell First { get; set; }
-        public LinkedListCell List { get; set; }
+        public LinkedListCell Head { get; set; }
+        public LinkedListCell Last { get; set; }
+        public int Length { get; set; }
 
-        public LinkedListCell getFirst()
+        public LinkedListCell getHead()
         {
-            if (First != null)
+            if (Head != null)
             {
-                return First;
+                return Head;
             }
             return null;
         }
 
-        public bool addCell(int Key)
+        public LinkedListCell getLast()
         {
-            if (List == null || List.Next == null)
+            if (Last != null)
             {
-                if (First == null)
-                {
-                    First = new LinkedListCell(Key);
-                    First.Next = First;
-                }
+                return Last;
+            }
+            return null;
+        }
 
-                List.Next = new LinkedListCell(Key);
-                List.Next.Next = First;
+        public bool addCell(AVLTreeCell Key)
+        {
+            if (Head == null)
+            {
+                Head = new LinkedListCell(Key);
+                Head.Next = Head;
+                Last = Head;
+                Length = 1;
                 return true;
             }
-            else
+
+            Last.Next = new LinkedListCell(Key);
+            Last.Next.Next = Head;
+            Length++;
+            Last = Last.Next;
+            return true;
+        }
+
+        public LinkedListCell removeCell()
+        {
+            LinkedListCell HeadTemp = Head;
+
+            if (Length == 1)
             {
-                List = List.Next;
-                return addCell(Key);
+                Head = null;
+                Last = null;
+                return HeadTemp;
             }
+            LinkedListCell afterHead = Head.Next;
+
+            Last.Next = afterHead;
+
+            Head = afterHead;
+
+            Length--;
+
+            return HeadTemp;
         }
     }
 
@@ -342,7 +388,7 @@ namespace DataStruc4ExerciseByYuvalAharoni
                 else
                 {
 
-                    if (Node.RightChild.RightChild.BalanceFactor > 0)
+                    if (Node.RightChild.RightChild != null && Node.RightChild.RightChild.BalanceFactor > 0)
                     {
                         AVLTreeCell atcTempNode = Node.RightChild.RightChild.LeftChild;
 
@@ -468,6 +514,7 @@ namespace DataStruc4ExerciseByYuvalAharoni
         public void printTree()
         {
             List<AVLTreeCell>[] totalTree = new List<AVLTreeCell>[7];
+            Queue totalQueue = new Queue();
 
             for (int initIndex = 0; initIndex < 7; initIndex++)
             {
@@ -478,13 +525,29 @@ namespace DataStruc4ExerciseByYuvalAharoni
 
             for (int index = 0; index < 7; index++)
             {
-                Console.Write("Level " + index + " | ");
                 foreach (AVLTreeCell Node in totalTree[index])
                 {
-                    Console.Write(Node.ToString());
+                    totalQueue.Enqueue(Node);
                 }
-                Console.WriteLine(" |");
             }
+
+            int currLevel = 0;
+            Console.Write("Level 0 | ");
+
+            while(!totalQueue.isEmpty())
+            {
+                if (currLevel != totalQueue.queue.Head.Node.Height)
+                {
+                    Console.WriteLine(" |");
+                    currLevel = totalQueue.queue.Head.Node.Height;
+                    Console.Write("Level " + currLevel + " | ");
+                }
+
+                Console.Write(totalQueue.Dequeue().Node.ToString());
+
+            }
+
+            Console.WriteLine(" |");
         }
 
         public List<AVLTreeCell>[] getList(List<AVLTreeCell>[] ListTree, AVLTreeCell Node)
