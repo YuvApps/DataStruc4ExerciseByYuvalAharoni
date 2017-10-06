@@ -17,6 +17,27 @@ namespace DataStruc4ExerciseByYuvalAharoni
         public AVLTreeCell RightChild { get; set; }
         public int RightMaxHeight { get; set; }
 
+        public AVLTreeCell() { }
+
+        public AVLTreeCell(AVLTreeCell Cell)
+        {
+            this.Key = Cell.Key;
+            this.Height = Cell.Height;
+            this.BalanceFactor = Cell.BalanceFactor;
+            this.Parent = Cell.Parent;
+            this.LeftChild = Cell.LeftChild;
+            this.LeftMaxHeight = Cell.LeftMaxHeight;
+            this.RightChild = Cell.RightChild;
+            this.RightMaxHeight = Cell.RightMaxHeight;
+        }
+
+        public override string ToString()
+        {
+            return "( " + this.Key + " , " + (this.Parent != null ? this.Parent.Key.ToString() : "-1") + " , " +
+                (this.LeftChild != null ? this.LeftChild.Key.ToString() : "-1") + " , " + 
+                (this.RightChild != null ? this.RightChild.Key.ToString() : "-1") + " )";
+            
+        }
     }
 
     public class Queue
@@ -75,7 +96,7 @@ namespace DataStruc4ExerciseByYuvalAharoni
 
     public class AVLTree
     {
-        AVLTreeCell Root;
+        public AVLTreeCell Root;
 
         /// <summary>
         /// 
@@ -245,7 +266,7 @@ namespace DataStruc4ExerciseByYuvalAharoni
         /// <param name="Node"></param>
         private void doRotation(AVLTreeCell Node)
         {
-            if (Math.Abs(Node.LeftChild.BalanceFactor) > 1)
+            if (Node.LeftChild != null && Math.Abs(Node.LeftChild.BalanceFactor) > 1)
             {
                 if (Node.LeftChild.BalanceFactor > 0)
                 {
@@ -342,7 +363,7 @@ namespace DataStruc4ExerciseByYuvalAharoni
                 }
 
             }
-            fixBalanceFactor(Root);
+            fixBalanceFactor(Root, 0);
         }
 
         /// <summary>
@@ -395,10 +416,11 @@ namespace DataStruc4ExerciseByYuvalAharoni
                 Root = atcFather;
             }
 
-            fixBalanceFactor(Root);
+            fixBalanceFactor(Root, 0);
+            Root.Parent = null;
         }
 
-        public int fixBalanceFactor(AVLTreeCell Node)
+        public int fixBalanceFactor(AVLTreeCell Node, int Level)
         {
             if (Node.LeftChild == null)
             {
@@ -406,7 +428,9 @@ namespace DataStruc4ExerciseByYuvalAharoni
             }
             else
             {
-                int nBalance = fixBalanceFactor(Node.LeftChild);
+                Node.LeftChild.Parent = Node;
+
+                int nBalance = fixBalanceFactor(Node.LeftChild, Level + 1);
 
                 Node.LeftMaxHeight = nBalance;
             }
@@ -417,12 +441,16 @@ namespace DataStruc4ExerciseByYuvalAharoni
             }
             else
             {
-                int nBalance = fixBalanceFactor(Node.RightChild);
+                Node.RightChild.Parent = Node;
+
+                int nBalance = fixBalanceFactor(Node.RightChild, Level + 1);
 
                 Node.RightMaxHeight = nBalance;
             }
 
             Node.BalanceFactor = Node.LeftMaxHeight - Node.RightMaxHeight;
+
+            Node.Height = Level;
 
             return Math.Max(Node.LeftMaxHeight, Node.RightMaxHeight) + 1;
         }
@@ -436,6 +464,45 @@ namespace DataStruc4ExerciseByYuvalAharoni
         {
             return getCellByKey(keyToDelete) == null;
         }
+
+        public void printTree()
+        {
+            List<AVLTreeCell>[] totalTree = new List<AVLTreeCell>[7];
+
+            for (int initIndex = 0; initIndex < 7; initIndex++)
+            {
+                totalTree[initIndex] = new List<AVLTreeCell>();
+            }
+
+            totalTree = getList(totalTree, Root);
+
+            for (int index = 0; index < 7; index++)
+            {
+                Console.Write("Level " + index + " | ");
+                foreach (AVLTreeCell Node in totalTree[index])
+                {
+                    Console.Write(Node.ToString());
+                }
+                Console.WriteLine(" |");
+            }
+        }
+
+        public List<AVLTreeCell>[] getList(List<AVLTreeCell>[] ListTree, AVLTreeCell Node)
+        {
+            if (Node.LeftChild != null)
+            {
+                ListTree = getList(ListTree, Node.LeftChild);
+            }
+
+            if (Node.RightChild != null)
+            {
+                ListTree = getList(ListTree, Node.RightChild);
+            }
+
+            ListTree[Node.Height].Add(new AVLTreeCell(Node));
+
+            return ListTree;
+        }
     }
 
     class Program
@@ -446,10 +513,27 @@ namespace DataStruc4ExerciseByYuvalAharoni
 
             AVLTree tree = new AVLTree();
 
+            int rndNum = rnd.Next(101);
+
+            Console.Write(rndNum);
+
             for (int counter = 0; counter < 25; counter++)
             {
-                tree.insertCell(rnd.Next(101));
+                tree.insertCell(rndNum);
+
+                rndNum = rnd.Next(1001);
+
+                Console.Write(", " + rndNum);
             }
+
+            Console.WriteLine();
+            Console.WriteLine();
+
+            tree.fixBalanceFactor(tree.Root, 0);
+
+            tree.printTree();
+
+            Console.ReadKey();
         }
     }
 }
